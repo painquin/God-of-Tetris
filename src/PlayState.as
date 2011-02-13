@@ -156,7 +156,7 @@ package
 		
 		private var GameState:uint = GS_Playing;
 		
-		private var Speed:Number = 0.25;
+		private var Speed:Number = 0.125;
 		
 		private function Player_GetMove():uint
 		{
@@ -207,16 +207,7 @@ package
 				if (currentPiece != null)
 				{
 					
-					var move:AI_Move = AI_Move.GetMove(GameBoard, currentPiece, curPosY);
-					
-					if (move.XPos < curPosX)
-					{
-						move.Action = AI_Move.MoveLeft;
-					}
-					else if (move.XPos > curPosX)
-					{
-						move.Action = AI_Move.MoveRight;
-					}
+					var move:AI_Move = AI_Move.GetMove(GameBoard, currentPiece, curPosX, curPosY);
 					
 					//var move:uint = Player_GetMove();
 					

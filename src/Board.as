@@ -53,6 +53,27 @@ package
 			return HasBlock;
 		}
 		
+		// is this valid without moving at all
+		public function IsValid(piece:gotTet, x:int, y:int):Boolean
+		{
+			var collide:Boolean = false;
+			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
+			{
+				var res:uint = BlockAt(x + e[0], y + e[1]);
+				switch(res)
+				{
+					case HasWall:
+					case HasBlock:
+					case HasFloor:
+						collide = true;
+						break;
+					case HasEmpty:
+						break;
+				}
+			});
+			
+			return !collide;
+		}
 		public function CanMoveLeft(piece:gotTet, x:int, y:int):Boolean
 		{
 			var collide:Boolean = false;
