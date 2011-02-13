@@ -10,12 +10,7 @@ package
 	public class PlayState extends FlxState
 	{
 		
-		public static const NoMove:uint = 0;
-		public static const RotateCW:uint = 1;
-		public static const RotateCCW:uint = 2;
-		public static const Rotate180:uint = 3;
-		public static const MoveLeft:uint = 4;
-		public static const MoveRight:uint = 5;
+		
 		
 		
 		private static const BlockSize:uint = 8;
@@ -94,6 +89,24 @@ package
 			s.graphics.drawRect(offset[0] + x * BlockSize + 1, offset[1] + y * BlockSize + 1, BlockSize-2, BlockSize-2);
 			s.graphics.endFill();
 			
+/*			s.graphics.lineStyle(0);
+			s.graphics.beginFill(0xFFFFFFFF);
+			s.graphics.drawRect(offset[0] + x * BlockSize + 2, offset[1] + y * BlockSize + 2, 2, 2);
+			s.graphics.endFill();
+			
+			var r:uint = (color >> 16) & 0xFF;
+			var g:uint = (color >> 8) & 0xFF;
+			var b:uint = color & 0xFF;
+			
+			s.graphics.beginFill(
+				0xFF << 24 |
+				uint(r * 0.9) << 16 |
+				uint(g * 0.9) << 8 |
+				uint(b * 0.9)
+				);
+			s.graphics.drawRect(offset[0] + x * BlockSize + 4, offset[1] + y * BlockSize + 4, BlockSize - 8, BlockSize - 8);
+			s.graphics.endFill();*/
+			
 			return s;
 		}
 		
@@ -136,92 +149,6 @@ package
 		public var curPosY:int;
 		
 		
-
-		
-		private static var Neighbors:Array = [ [ -1, 0], [1, 0], [0, -1], [0, 1] ];
-		
-		private function AI_ScoreForDrop(piece:gotTet, x:uint):uint
-		{
-			for (var drop:uint = curPosY; drop < GameBoard.Height; ++drop)
-			{
-				if (GameBoard.CheckCollision(piece, x, drop)) break;
-			}
-			
-			var count:uint = 0;
-			
-			// should have "piece" at the end now
-			var score:uint = 0;
-			for (var idx:uint = 0; idx < GameBoard.Width * GameBoard.Height; ++idx)
-			{
-				
-			}
-			
-			return score;
-			
-		}
-		
-		private function AI_GetBestMoveForPiece(piece:gotTet, action:uint):AI_Move
-		{
-			var bestX:int = 0;
-			var bestScore:uint = 0;
-			
-			for (var x:int = -3; x < GameBoard.Width + 3; ++x)
-			{
-				var t:uint = AI_ScoreForDrop(piece, x);
-				if (t > bestScore)
-				{
-					bestX = x;
-					bestScore = t;
-				}
-			}
-			
-			return new AI_Move(bestScore, bestX, action);
-		}
-		
-		
-		private function AI_GetMove():uint
-		{
-			var bestMove:AI_Move = AI_GetBestMoveForPiece(currentPiece, NoMove);
-			
-			var contenderMove:AI_Move = AI_GetBestMoveForPiece(currentPiece.RotateCW(), RotateCW);
-			
-			if (contenderMove.Score > bestMove.Score)
-			{
-				bestMove = contenderMove;
-			}
-			
-			contenderMove = AI_GetBestMoveForPiece(currentPiece.RotateCCW(), RotateCCW);
-			
-			if (contenderMove.Score > bestMove.Score)
-			{
-				bestMove = contenderMove;
-			}
-			
-			contenderMove = AI_GetBestMoveForPiece(currentPiece.Rotate180(), RotateCCW);
-			
-			if (contenderMove.Score > bestMove.Score)
-			{
-				bestMove = contenderMove;
-			}
-			
-			if (bestMove.Action == NoMove)
-			{
-				if (bestMove.XPos < curPosX)
-				{
-					return MoveLeft;
-				}
-				if (bestMove.XPos > curPosX)
-				{
-					return NoMove;
-				}
-				
-				return NoMove;
-			}
-			
-			return bestMove.Action;
-			
-		}
-		
 		
 		private static const GS_Playing:uint = 1;
 		private static const GS_Won:uint = 2;
@@ -233,12 +160,12 @@ package
 		
 		private function Player_GetMove():uint
 		{
-			if (FlxG.keys.LEFT) return MoveLeft;
-			if (FlxG.keys.RIGHT) return MoveRight;
-			if (FlxG.keys.ENTER) return RotateCW;
-			if (FlxG.keys.CONTROL) return RotateCCW;
+			if (FlxG.keys.LEFT) return AI_Move.MoveLeft;
+			if (FlxG.keys.RIGHT) return AI_Move.MoveRight;
+			if (FlxG.keys.ENTER) return AI_Move.RotateCW;
+			if (FlxG.keys.CONTROL) return AI_Move.RotateCCW;
 			
-			return NoMove;
+			return AI_Move.NoMove;
 		}
 		
 		override public function update():void 
@@ -281,33 +208,42 @@ package
 				if (currentPiece != null)
 				{
 					
-					//var move:uint = AI_GetMove();
+					var move:AI_Move = AI_Move.GetMove(GameBoard, currentPiece, curPosY);
 					
-					var move:uint = Player_GetMove();
+					if (move.XPos < curPosX)
+					{
+						move.Action = AI_Move.MoveLeft;
+					}
+					else if (move.XPos > curPosX)
+					{
+						move.Action = AI_Move.MoveRight;
+					}
+					
+					//var move:uint = Player_GetMove();
 					
 					var oldPiece:gotTet = currentPiece;
 					var oldX:int = curPosX;
 					var oldY:int = curPosY;
 					
-					switch(move)
+					switch(move.Action)
 					{
-						case NoMove:
+						case AI_Move.NoMove:
 							curPosY += 1;
 							break;
-						case RotateCW:
+						case AI_Move.RotateCW:
 							currentPiece = currentPiece.RotateCW();
 							break;
-						case RotateCCW:
+						case AI_Move.RotateCCW:
 							currentPiece = currentPiece.RotateCCW();
 							break;
-						case Rotate180:
+						case AI_Move.Rotate180:
 							currentPiece = currentPiece.Rotate180();
 							break;
-						case MoveLeft:
+						case AI_Move.MoveLeft:
 							curPosX -= 1;
 							curPosY += 1;
 							break;
-						case MoveRight:
+						case AI_Move.MoveRight:
 							curPosX += 1;
 							curPosY += 1;
 							break;
