@@ -74,6 +74,7 @@ package
 			
 			return !collide;
 		}
+		
 		public function CanMoveLeft(piece:gotTet, x:int, y:int):Boolean
 		{
 			var collide:Boolean = false;
@@ -144,7 +145,7 @@ package
 		{
 			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
 			{
-				Grid[x + e[0] + (y + e[1]) * Width] = 0xFF707070; // piece.color;
+				Grid[x + e[0] + (y + e[1]) * Width] = piece.color;
 			});
 			var any:Boolean = false;
 			

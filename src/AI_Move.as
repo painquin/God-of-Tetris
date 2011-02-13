@@ -9,14 +9,12 @@ package
 		public var Score:Number;
 		public var Action:uint;
 		public var XPos:int;
-		public var Next:AI_Move;
 		
-		public function AI_Move(score:Number, action:uint, xpos:int, next:AI_Move = null) 
+		public function AI_Move(score:Number, action:uint, xpos:int) 
 		{
 			Score = score;
 			Action = action;
 			XPos = xpos;
-			Next = next;
 		}
 		
 		public static const NoMove:uint = 0;
@@ -24,88 +22,9 @@ package
 		public static const RotateCCW:uint = 2;
 		public static const MoveLeft:uint = 3;
 		public static const MoveRight:uint = 4;
-		
-		public static var MoveNames:Array = [ "No Move   ", "Rotate CW ", "Rotate CCW", "Move Left ", "Move Right" ];
-		
+				
 		public static const Rotate180:uint = 6;
 		
-		/*private static function ScoreForDrop(board:Board):Number
-		{
-			var score:Number = 0;
-
-			for (var scanx:int = 0; scanx < board.Width; ++scanx)
-			{
-				for (var scany:int = 0; scany < board.Height + 1; ++scany)
-				{
-					var v:uint = board.BlockAt(scanx, scany);
-					if (v != Board.HasEmpty)
-					{
-						score += ((board.Height - scany) * (board.Height - scany));
-						break;
-					}
-				}
-			}
-			
-			return score;
-		}
-
-		public static function GetMove(board:Board, piece:gotTet, x:int, y:int):AI_Move
-		{
-			var BestMove:AI_Move = new AI_Move(Number.MAX_VALUE, NoMove, null);
-			
-			for (var action:uint = NoMove; action <= MoveRight; ++action)
-			{
-				var myX:int = x;
-				var myY:int = y;
-				var myPiece:gotTet = piece;
-				var myMove:AI_Move;
-				
-				switch(action)
-				{
-					case NoMove:
-					default:
-						break;
-					case RotateCW:
-						myPiece = piece.RotateCW();
-						break;
-					case RotateCCW:
-						myPiece = piece.RotateCCW();
-						break;
-					case MoveLeft:
-						myX -= 1;
-						break;
-					case MoveRight:
-						myX += 1;
-						break;
-				}
-				
-				if (!board.IsValid(myPiece, myX, myY)) 
-				{
-					continue;
-				}
-				
-				if (board.CanMoveDown(myPiece, myX, myY))
-				{
-					
-					var t:AI_Move = GetMove(board, myPiece, myX, myY+1);
-					myMove = new AI_Move(t.Score, action, t);
-				}
-				else
-				{
-					
-					var myBoard:Board = board.Copy();
-					myBoard.AddPiece(piece, myX, myY);
-					myBoard.Gravity();
-					myMove = new AI_Move(ScoreForDrop(myBoard), action, null);
-				}
-				
-				if (myMove.Score < BestMove.Score)
-				{
-					BestMove = myMove;
-				}
-			}
-			return BestMove;
-		}*/
 		
 		private static function ScoreForDrop(board:Board, piece:gotTet, x:int, y:int):Number
 		{

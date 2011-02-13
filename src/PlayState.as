@@ -6,6 +6,7 @@ package
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;
 	import org.flixel.*;
+	import org.flixel.data.FlxAnim;
  
 	public class PlayState extends FlxState
 	{
@@ -19,9 +20,12 @@ package
 		
 		
 		private var currentPiece:gotTet;
-		private var queuedPiece:gotTetPrototype;
+		private var queue:Array;
+		private var queueSprites:Array;
 		
-		private var queuedSprite:FlxSprite;
+		//private var queuedPiece:gotTetPrototype;
+		
+		//private var queuedSprite:FlxSprite;
 		
 		private function DrawGrid():void
 		{
@@ -61,20 +65,26 @@ package
 			frame.pixels = b;
 		}
 		
-		public function ClearQueue():void
+		public function GetQueued():gotTet
 		{
-			queuedPiece = null;
-			queuedSprite.pixels = new BitmapData(1, 1, true, 0);
+			var p:gotTetPrototype = queue.shift();
+			for (var idx:uint = 0; idx < 4; ++idx)
+			{
+				queueSprites[idx].pixels = queueSprites[idx + 1].pixels;
+			}
+			queueSprites[4].pixels = new BitmapData(1, 1, true, 0);
+			
+			return p.Create();
 		}
 		
 		public function AddQueue(proto:gotTetPrototype):void
 		{
-			if (queuedPiece == null)
+			if (queue.length < 5)
 			{
-				queuedPiece = proto;
+				queue.push(proto);
 				var b:BitmapData = new BitmapData(BlockSize * 4, BlockSize * 4, true, 0);
-				b.draw(CreateSprite(queuedPiece));
-				queuedSprite.pixels = b;
+				b.draw(CreateSprite(proto));
+				queueSprites[queue.length-1].pixels = b;
 				return;
 			}
 		}
@@ -189,10 +199,9 @@ package
 				
 				
 				// run one update
-				if (currentPiece == null && queuedPiece != null)
+				if (currentPiece == null && queue.length > 0)
 				{
-					currentPiece = queuedPiece.Create();
-					ClearQueue();
+					currentPiece = GetQueued();
 					curPosY = 0;
 					curPosX = 3;
 					
@@ -209,11 +218,7 @@ package
 					
 					var move:AI_Move = AI_Move.GetMove(GameBoard, currentPiece, curPosX, curPosY);
 					
-					//var move:uint = Player_GetMove();
-					
-					/*var oldPiece:gotTet = currentPiece;
-					var oldX:int = curPosX;
-					var oldY:int = curPosY;*/
+					var oldPiece:gotTet = currentPiece;
 					
 					switch(move.Action)
 					{
@@ -221,12 +226,24 @@ package
 							break;
 						case AI_Move.RotateCW:
 							currentPiece = currentPiece.RotateCW();
+							if (!GameBoard.IsValid(currentPiece, curPosX, curPosY))
+							{
+								currentPiece = oldPiece;
+							}
 							break;
 						case AI_Move.RotateCCW:
 							currentPiece = currentPiece.RotateCCW();
+							if (!GameBoard.IsValid(currentPiece, curPosX, curPosY))
+							{
+								currentPiece = oldPiece;
+							}
 							break;
 						case AI_Move.Rotate180:
 							currentPiece = currentPiece.Rotate180();
+							if (!GameBoard.IsValid(currentPiece, curPosX, curPosY))
+							{
+								currentPiece = oldPiece;
+							}
 							break;
 						case AI_Move.MoveLeft:
 							if (GameBoard.CanMoveLeft(currentPiece, curPosX, curPosY))
@@ -269,7 +286,13 @@ package
 			
 			GameBoard = new Board(10, 18);
 			
-			add(queuedSprite = new FlxSprite(10, 10).createGraphic(BlockSize * 4, BlockSize * 4, 0));
+			//add(queuedSprite = new FlxSprite(10, 10).createGraphic(BlockSize * 4, BlockSize * 4, 0));
+			queue = [];
+			queueSprites = [];
+			for (var idx:uint = 0; idx < 5; ++idx)
+			{
+				add(queueSprites[idx] = new FlxSprite(10 + idx * 40, 10).createGraphic(BlockSize * 4, BlockSize * 4, 0));
+			}
 			
 			add(frame = new FlxSprite(8, 48).createGraphic(1, 1, 0));
 			
