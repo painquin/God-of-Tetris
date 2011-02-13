@@ -196,11 +196,10 @@ package
 					curPosY = 0;
 					curPosX = 3;
 					
-					if (GameBoard.CheckCollision(currentPiece, curPosX, curPosY))
+					if (!GameBoard.CanMoveDown(currentPiece, curPosX, curPosY))
 					{
 						// you win!
 						GameState = GS_Won;
-						
 					}
 					
 				}
@@ -221,14 +220,13 @@ package
 					
 					//var move:uint = Player_GetMove();
 					
-					var oldPiece:gotTet = currentPiece;
+					/*var oldPiece:gotTet = currentPiece;
 					var oldX:int = curPosX;
-					var oldY:int = curPosY;
+					var oldY:int = curPosY;*/
 					
 					switch(move.Action)
 					{
 						case AI_Move.NoMove:
-							curPosY += 1;
 							break;
 						case AI_Move.RotateCW:
 							currentPiece = currentPiece.RotateCW();
@@ -240,32 +238,32 @@ package
 							currentPiece = currentPiece.Rotate180();
 							break;
 						case AI_Move.MoveLeft:
-							curPosX -= 1;
-							curPosY += 1;
+							if (GameBoard.CanMoveLeft(currentPiece, curPosX, curPosY))
+							{
+								curPosX -= 1;
+							}
 							break;
 						case AI_Move.MoveRight:
-							curPosX += 1;
-							curPosY += 1;
+							if (GameBoard.CanMoveRight(currentPiece, curPosX, curPosY))
+							{
+								curPosX += 1;
+							}
 							break;
 					}
 					
-					// now check for collision
-					var reason:uint = GameBoard.CheckCollision(currentPiece, curPosX, curPosY)
-					if (reason) 
-					{
-						currentPiece = oldPiece;
-						curPosX = oldX;
-						curPosY = oldY;
-						
-						if (reason == 1)
+					
+					if (!GameBoard.CanMoveDown(currentPiece, curPosX, curPosY)) 
+					{					
+						if (GameBoard.AddPiece(currentPiece, curPosX, curPosY))
 						{
-							if (GameBoard.AddPiece(currentPiece, curPosX, curPosY))
-							{
-								GameState = GS_Gravity;
-							}
-							
-							currentPiece = null;
+							GameState = GS_Gravity;
 						}
+						
+						currentPiece = null;
+					}
+					else
+					{
+						curPosY += 1;
 					}
 				}
 				timer -= Speed;

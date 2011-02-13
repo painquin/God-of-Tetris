@@ -36,46 +36,94 @@ package
 			return new Board(Width, Height, Grid);
 		}
 		
+		public static const HasEmpty:uint = 0;
+		public static const HasWall:uint = 1;
+		public static const HasBlock:uint = 2;
+		public static const HasFloor:uint = 3;
 		
-		
-		// todo: moving sideways into existing blocks shouldn't end your move
-		
-		// returns 0 if there is no reason that you can't put a block at this spot
-		// returns 1 if there is another block in the way or you hit the bottom - this ends your move, probably incorrectly.
-		// returns 2 if there is a wall in the way - this keeps you from using the spot, but that's all
-		public function CanHas(x:uint, y:uint):uint
+		public function BlockAt(x:int, y:int):uint
 		{
-			if (x < 0 || x >= Width) return 2;
-			if (y < 0) return 2;
+			if (y >= Height)
+				return HasFloor;
+				
+			if (x < 0 || x >= Width) return HasWall;
+			if (y < 0) return HasWall;
 			
-			if (y > Height) return 1;
-			
-			if (Grid[x + y * Width] != 0) return 1;
-			
-			return 0;
+			if (Grid[x + y * Width] == 0) return HasEmpty;
+			return HasBlock;
 		}
 		
-		public function CheckCollision(piece:gotTet, x:uint, y:uint):uint
+		public function CanMoveLeft(piece:gotTet, x:int, y:int):Boolean
 		{
-			
-			var collide:uint = 0;
+			var collide:Boolean = false;
 			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
 			{
-				var res:uint = CanHas(x + e[0], y + e[1]);
-				if (res != 0)
+				var res:uint = BlockAt(x + e[0] - 1, y + e[1]);
+				switch(res)
 				{
-					collide = res;
+					case HasWall:
+					case HasBlock:
+					case HasFloor:
+						collide = true;
+						break;
+					case HasEmpty:
+						break;
 				}
 			});
 			
-			return collide;
+			return !collide;
 		}
+		
+		public function CanMoveRight(piece:gotTet, x:int, y:int):Boolean
+		{
+			var collide:Boolean = false;
+			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
+			{
+				var res:uint = BlockAt(x + e[0] + 1, y + e[1]);
+				switch(res)
+				{
+					case HasWall:
+					case HasBlock:
+					case HasFloor:
+						collide = true;
+						break;
+					case HasEmpty:
+						break;
+				}
+			});
+			
+			return !collide;
+		}
+		
+		public function CanMoveDown(piece:gotTet, x:int, y:int):Boolean
+		{
+			
+			var collide:Boolean = false;
+			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
+			{
+				var res:uint = BlockAt(x + e[0], y + e[1] + 1);
+				switch(res)
+				{
+					case HasBlock:
+					case HasFloor:
+						collide = true;
+						break;
+					case HasWall:
+					case HasEmpty:
+						break;
+				}
+			});
+			
+			return !collide;
+		}
+		
+		
 		
 		public function AddPiece(piece:gotTet, x:int, y:int):Boolean
 		{
 			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
 			{
-				Grid[x + e[0] + (y + e[1]) * Width] = piece.color;
+				Grid[x + e[0] + (y + e[1]) * Width] = 0xFF707070; // piece.color;
 			});
 			var any:Boolean = false;
 			
