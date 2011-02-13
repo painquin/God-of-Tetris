@@ -31,9 +31,9 @@ package
 			
 			for (var idx:int = 0; idx < 4; ++idx)
 			{
-				if (board.BlockAt(x + piece.squares[idx][0], y + piece.squares[idx][1]) == Board.HasWall)
+				if (board.BlockAt(x + piece.squares[idx][0], y + piece.squares[idx][1]) != Board.HasEmpty)
 				{
-					return 0;
+					return Number.MAX_VALUE;
 				}
 			}
 			
@@ -48,71 +48,67 @@ package
 			newBoard.AddPiece(piece, x, drop);
 			newBoard.Gravity();
 			
-			var count:uint = 0;
-			
 			var score:Number = 0;
-			
-			for (idx = 0; idx < newBoard.Width * newBoard.Height; ++idx)
+
+			for (var scanx:int = 0; scanx < newBoard.Width; ++scanx)
 			{
-				if (newBoard.Grid[idx] == 0)
+				for (var scany:int = 0; scany < newBoard.Height + 1; ++scany)
 				{
-					continue;
+					var v:uint = newBoard.BlockAt(scanx, scany);
+					if (v != Board.HasEmpty)
+					{
+						score += ((newBoard.Height - scany) * (newBoard.Height - scany));
+						break;
+					}
 				}
-				count += 1;
-				score += uint(idx / newBoard.Width);
 			}
 			
-			if (count == 0) return 1000; // empty board trumps all
-			
-			return score / count;
+			return score;
 		}
 		
 		private static function GetBestMoveForPiece(board:Board, piece:gotTet, action:uint, y:int):AI_Move
 		{
 			var bestX:int = 0;
-			var bestScore:Number = 0;
-			trace("GBM");
+			var bestScore:Number = 1000;
 			for (var x:int = -3; x < board.Width + 3; ++x)
 			{
 				var t:Number = ScoreForDrop(board, piece, x, y);
-				if (t > bestScore)
+				if (t < bestScore)
 				{
 					bestX = x;
 					bestScore = t;
-					trace("new best: ", bestScore);
 				}
 			}
+			trace("> ", bestScore)
 			return new AI_Move(bestScore, bestX, action);
 		}
 		
 		
 		public static function GetMove(board:Board, piece:gotTet, y:int):AI_Move
 		{
-			trace("GM");
 			var bestMove:AI_Move = GetBestMoveForPiece(board, piece, NoMove, y);
 			
 			var contenderMove:AI_Move = GetBestMoveForPiece(board, piece.RotateCW(), RotateCW, y);
 			
-			if (contenderMove.Score > bestMove.Score)
+			if (contenderMove.Score < bestMove.Score)
 			{
 				bestMove = contenderMove;
 			}
 			
 			contenderMove = GetBestMoveForPiece(board, piece.RotateCCW(), RotateCCW, y);
 			
-			if (contenderMove.Score > bestMove.Score)
+			if (contenderMove.Score < bestMove.Score)
 			{
 				bestMove = contenderMove;
 			}
 			
 			contenderMove = GetBestMoveForPiece(board, piece.Rotate180(), RotateCCW, y);
 			
-			if (contenderMove.Score > bestMove.Score)
+			if (contenderMove.Score < bestMove.Score)
 			{
 				bestMove = contenderMove;
 			}
 			
-			trace("Best Score: ", bestMove.Score);
 
 			return bestMove;
 		}

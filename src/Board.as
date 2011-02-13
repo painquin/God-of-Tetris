@@ -43,12 +43,12 @@ package
 		
 		public function BlockAt(x:int, y:int):uint
 		{
+
+			if (x < 0 || x >= Width) return HasWall;
+			if (y < 0) return HasWall;
 			if (y >= Height)
 				return HasFloor;
 				
-			if (x < 0 || x >= Width) return HasWall;
-			if (y < 0) return HasWall;
-			
 			if (Grid[x + y * Width] == 0) return HasEmpty;
 			return HasBlock;
 		}
