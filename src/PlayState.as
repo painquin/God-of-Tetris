@@ -364,6 +364,19 @@ package
 				[1, 2]
 				], 0xFFFF00FF), 130, 170));
 			
+			var reset:FlxButton = new FlxButton(80, 220, function():void {
+				GameBoard = new Board(10, 18);
+				GameState = GS_Playing;
+				while (queue.length > 0) GetQueued(); // not efficient, don't care
+				currentPiece = null;
+				DrawGrid();
+			});
+			
+			reset.loadGraphic(new FlxSprite(0, 0).createGraphic(42, 12, 0), new FlxSprite(0,0).createGraphic(42,12, 0xFF707070));
+			reset.loadText(new FlxText(0, 0, 42, "Restart"));
+				
+			add(reset);
+			
 			FlxG.mouse.show();
 			
 		}
