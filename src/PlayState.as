@@ -231,8 +231,6 @@ package
 		
 		private var Speed:Number = 0.25;
 		
-		private var linesCleared:Array = [];
-		
 		private function Player_GetMove():uint
 		{
 			if (FlxG.keys.LEFT) return MoveLeft;
@@ -257,37 +255,7 @@ package
 				
 				if (GameState == GS_Gravity)
 				{
-					var destY:int = GameBoard.Height - 1;
-					var x:uint;
-					for (var srcY:int = GameBoard.Height - 1; srcY >= 0; --srcY)
-					{
-						if (linesCleared.indexOf(srcY) != -1)
-						{
-							continue;
-						}
-						
-						if (srcY != destY) 
-						{
-							for (x = 0; x < GameBoard.Width; ++x)
-							{
-								GameBoard.Grid[x + destY * GameBoard.Width] = GameBoard.Grid[x + srcY * GameBoard.Width];
-							}
-						}
-						
-						
-						--destY;
-					}
-					
-					while (destY >= 0)
-					{
-						for (x = 0; x < GameBoard.Width; ++x)
-						{
-							GameBoard.Grid[x + destY * GameBoard.Width] = 0;
-						}
-						--destY;
-					}
-					
-					linesCleared = [];
+					GameBoard.Gravity();
 					GameState = GS_Playing;
 					continue;
 				}
@@ -313,9 +281,9 @@ package
 				if (currentPiece != null)
 				{
 					
-					var move:uint = AI_GetMove();
+					//var move:uint = AI_GetMove();
 					
-					//var move:uint = Player_GetMove();
+					var move:uint = Player_GetMove();
 					
 					var oldPiece:gotTet = currentPiece;
 					var oldX:int = curPosX;
@@ -355,15 +323,12 @@ package
 						
 						if (reason == 1)
 						{
-							linesCleared = GameBoard.AddPiece(currentPiece, curPosX, curPosY);
-							
-							currentPiece = null;
-							
-							if (linesCleared.length > 0)
+							if (GameBoard.AddPiece(currentPiece, curPosX, curPosY))
 							{
 								GameState = GS_Gravity;
 							}
 							
+							currentPiece = null;
 						}
 					}
 				}

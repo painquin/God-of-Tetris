@@ -71,14 +71,13 @@ package
 			return collide;
 		}
 		
-		public function AddPiece(piece:gotTet, x:int, y:int):Array
+		public function AddPiece(piece:gotTet, x:int, y:int):Boolean
 		{
 			piece.squares.forEach(function(e:Array, idx:uint, arr:Array):void
 			{
 				Grid[x + e[0] + (y + e[1]) * Width] = piece.color;
 			});
-			
-			var linesCleared:Array = [];
+			var any:Boolean = false;
 			
 			for (var clearY:int = 0; clearY < Height; ++clearY)
 			{
@@ -93,7 +92,8 @@ package
 				
 				if (!missing)
 				{
-					linesCleared.push(clearY);
+
+					any = true;
 					
 					for (clearX = 0; clearX < Width; ++clearX)
 					{
@@ -103,7 +103,50 @@ package
 				
 			}
 			
-			return linesCleared;
+			return any;
+			
+		}
+		
+		public function Gravity():void
+		{
+			var destY:int = Height - 1;
+			var x:uint;
+			for (var srcY:int = Height - 1; srcY >= 0; --srcY)
+			{
+				var any:Boolean = false;
+				for (var clearX:uint = 0; clearX < Width; ++clearX)
+				{
+					if (Grid[clearX + srcY * Width] != 0) {
+						any = true;
+						break;
+					}
+				}
+				
+				if (!any)
+				{
+					continue;
+				}
+				
+				if (srcY != destY) 
+				{
+					for (x = 0; x < Width; ++x)
+					{
+						Grid[x + destY * Width] = Grid[x + srcY * Width];
+					}
+				}
+				
+				
+				--destY;
+			}
+			
+			while (destY >= 0)
+			{
+				for (x = 0; x < Width; ++x)
+				{
+					Grid[x + destY * Width] = 0;
+				}
+				--destY;
+			}
 		}
 	}
 
