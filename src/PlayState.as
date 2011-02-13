@@ -65,6 +65,11 @@ package
 			frame.pixels = b;
 		}
 		
+		
+		[Embed(source = '../blip.mp3')]
+		private var clearSound:Class;
+		
+		
 		public function GetQueued():gotTet
 		{
 			var p:gotTetPrototype = queue.shift();
@@ -166,23 +171,19 @@ package
 		
 		private var GameState:uint = GS_Playing;
 		
-		private var Speed:Number = 0.125;
-		
-		private function Player_GetMove():uint
-		{
-			if (FlxG.keys.LEFT) return AI_Move.MoveLeft;
-			if (FlxG.keys.RIGHT) return AI_Move.MoveRight;
-			if (FlxG.keys.ENTER) return AI_Move.RotateCW;
-			if (FlxG.keys.CONTROL) return AI_Move.RotateCCW;
-			
-			return AI_Move.NoMove;
-		}
-		
+		private var Speed:Number = 0.1;
+		private var wonIdx:int = 0;
 		override public function update():void 
 		{
 			super.update();
 			if (GameState == GS_Won)
 			{
+				while (wonIdx >= 0 && GameBoard.Grid[wonIdx] == 0) --wonIdx;
+				if (wonIdx < 0) return;
+				
+				GameBoard.Grid[wonIdx] = 0xFF707070;
+				--wonIdx;
+				DrawGrid();
 				return;
 			}
 			
@@ -205,10 +206,12 @@ package
 					curPosY = 0;
 					curPosX = 3;
 					
-					if (!GameBoard.CanMoveDown(currentPiece, curPosX, curPosY))
+					if (!GameBoard.IsValid(currentPiece, curPosX, curPosY))
 					{
 						// you win!
+						GameBoard.AddPiece(currentPiece, curPosX, curPosY);
 						GameState = GS_Won;
+						wonIdx = GameBoard.Width * GameBoard.Height - 1;
 					}
 					
 				}
@@ -230,6 +233,10 @@ package
 							{
 								currentPiece = oldPiece;
 							}
+							else 
+							{
+								//FlxG.play(rotateSound);
+							}
 							break;
 						case AI_Move.RotateCCW:
 							currentPiece = currentPiece.RotateCCW();
@@ -237,12 +244,20 @@ package
 							{
 								currentPiece = oldPiece;
 							}
+							else 
+							{
+								//FlxG.play(rotateSound);
+							}
 							break;
 						case AI_Move.Rotate180:
 							currentPiece = currentPiece.Rotate180();
 							if (!GameBoard.IsValid(currentPiece, curPosX, curPosY))
 							{
 								currentPiece = oldPiece;
+							}
+							else 
+							{
+								//FlxG.play(rotateSound);
 							}
 							break;
 						case AI_Move.MoveLeft:
@@ -261,10 +276,12 @@ package
 					
 					
 					if (!GameBoard.CanMoveDown(currentPiece, curPosX, curPosY)) 
-					{					
+					{
 						if (GameBoard.AddPiece(currentPiece, curPosX, curPosY))
 						{
 							GameState = GS_Gravity;
+							FlxG.play(clearSound);
+							
 						}
 						
 						currentPiece = null;
